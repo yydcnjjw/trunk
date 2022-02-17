@@ -133,6 +133,10 @@ pub struct ConfigOptsServe {
     #[arg(long = "no-autoreload")]
     #[serde(default)]
     pub no_autoreload: bool,
+    /// Additional headers to send in responses [default: none]
+    #[clap(skip)]
+    #[serde(default)]
+    pub headers: HashMap<String, String>,
 }
 
 /// Config options for the serve system.
@@ -345,6 +349,7 @@ impl ConfigOpts {
             proxy_insecure: cli.proxy_insecure,
             proxy_ws: cli.proxy_ws,
             no_autoreload: cli.no_autoreload,
+            headers: cli.headers,
         };
         let cfg = ConfigOpts {
             build: None,
@@ -521,6 +526,7 @@ impl ConfigOpts {
                 if l.open {
                     g.open = true;
                 }
+                g.headers.extend(l.headers);
                 Some(g)
             }
         };
