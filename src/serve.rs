@@ -1,12 +1,11 @@
-use std::net::{IpAddr, Ipv4Addr};
 use std::collections::HashMap;
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use axum::body::{self, Body};
 use axum::extract::ws::{WebSocket, WebSocketUpgrade};
-use axum::extract::Extension;
 use axum::http::header::HeaderName;
 use axum::http::{HeaderValue, StatusCode};
 use axum::response::Response;
@@ -238,15 +237,12 @@ fn router(state: Arc<State>, cfg: Arc<RtcServe>) -> Result<Router> {
         .fallback_service(
             Router::new().nest_service(
                 public_route,
-                get_service(
-                    ServeDir::new(&state.dist_dir)
-                        .fallback(ServeFile::new(state.dist_dir.join(INDEX_HTML))),
-                )
-                .handle_error(|error| async move {
-                    tracing::error!(?error, "failed serving static file");
-                    StatusCode::INTERNAL_SERVER_ERROR
-                })
-                .layer(TraceLayer::new_for_http()),
+                get_service(serve_dir)
+                    .handle_error(|error| async move {
+                        tracing::error!(?error, "failed serving static file");
+                        StatusCode::INTERNAL_SERVER_ERROR
+                    })
+                    .layer(TraceLayer::new_for_http()),
             ),
         )
         .route(
